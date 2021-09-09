@@ -63,3 +63,21 @@ exports.home = function (req, res) {
     res.render('home-guest', { errors: req.flash('errors'), regErrors: req.flash('regErrors') })
   }
 }
+
+exports.ifUserExists = function (req, res, next) {
+  User.findByUsername(req.params.username)
+    .then(function (userDocument) {
+      req.profileUser = userDocument
+      next()
+    })
+    .catch(function () {
+      res.render('404')
+    })
+}
+
+exports.profilePsotsScreen = function (req, res) {
+  res.render('profile', {
+    profileUsername: req.profileUser.username,
+    profileAvatar: req.profileUser.avatar
+  })
+}

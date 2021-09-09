@@ -124,4 +124,31 @@ class User {
   }
 }
 
+User.findByUsername = function (username) {
+  return new Promise(function (resolve, reject) {
+    if (typeof username != 'string') {
+      reject()
+      return
+    }
+    userCollection
+      .findOne({ username: username })
+      .then(function (userDoc) {
+        if (userDoc) {
+          userDoc = new User(userDoc, true)
+          userDoc = {
+            _id: userDoc.reqBody._id,
+            username: userDoc.reqBody.username,
+            avatar: userDoc.avatar
+          }
+          resolve(userDoc)
+        } else {
+          reject()
+        }
+      })
+      .catch(function () {
+        reject()
+      })
+  })
+}
+
 module.exports = User
