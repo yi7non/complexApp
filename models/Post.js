@@ -46,7 +46,7 @@ class Post {
   }
 }
 
-Post.reusablePostQuery = function (uniqueOperations) {
+Post.reusablePostQuery = function (uniqueOperations, visitorId) {
   return new Promise(async (resolve, reject) => {
     let aggOperations = uniqueOperations.concat([
       {
@@ -80,13 +80,13 @@ Post.reusablePostQuery = function (uniqueOperations) {
   })
 }
 
-Post.findSingleById = function (id) {
+Post.findSingleById = function (id, visitorId) {
   return new Promise(async (resolve, reject) => {
     if (typeof id != 'string' || !ObjectID.isValid(id)) {
       reject()
       return
     }
-    let posts = await Post.reusablePostQuery([{ $match: { _id: new ObjectID(id) } }])
+    let posts = await Post.reusablePostQuery([{ $match: { _id: new ObjectID(id) } }], visitorId)
     if (posts.length) {
       resolve(posts[0])
     } else {
