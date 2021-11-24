@@ -25,6 +25,9 @@ app.use(flash())
 // res.locals
 // An object that contains response local variables scoped to the request, and therefore available only to the view(s) rendered during that request / response cycle (if any). Otherwise, this property is identical to app.locals.
 app.use(function (req, res, next) {
+  // make all error and success flash messages available from all templates
+  res.locals.errors = req.flash('errors')
+  res.locals.success = req.flash('success')
   // make current user id availabel on the req object
   if (req.session.user) {
     req.visitorId = req.session.user._id

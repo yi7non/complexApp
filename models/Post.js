@@ -3,9 +3,10 @@ const ObjectID = require('mongodb').ObjectID
 const User = require('./User')
 
 class Post {
-  constructor(data, userid) {
+  constructor(data, userid, requestedPostId) {
     this.data = data
     this.userid = userid
+    this.requestedPostId = requestedPostId
     this.errors = []
   }
 
@@ -44,6 +45,38 @@ class Post {
       }
     })
   }
+  update() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let post = await Post.findSingleById(this.requestedPostId, this.userid)
+        if (post.isVisitorOwner) {
+          // actually update the db
+          let status = await this.actuallyUpdate()
+          resolve(status)
+        } else {
+          reject()
+        }
+      } catch {
+        reject()
+      }
+    })
+  }
+
+  actuallyUpdate() {
+    return new Promise(async (resolve, reject) => {
+      this.cleanUp()
+      this.validate()
+      if (!this.errors.length) {
+        await postCollection.findOneAndUpdate(
+          { _id: new ObjectID(this.requestedPostId) },
+          { $set: { title: this.data.title, body: this.data.body } }
+        )
+        resolve('success')
+      } else {
+        resolve('failure')
+      }
+    })
+  }
 }
 
 Post.reusablePostQuery = function (uniqueOperations, visitorId) {
@@ -62,6 +95,7 @@ Post.reusablePostQuery = function (uniqueOperations, visitorId) {
           title: 1,
           body: 1,
           createdDate: 1,
+          authorId: '$author',
           author: { $arrayElemAt: ['$authorDocument', 0] }
         }
       }
@@ -70,6 +104,8 @@ Post.reusablePostQuery = function (uniqueOperations, visitorId) {
     let posts = await postCollection.aggregate(aggOperations).toArray()
     // clean up author property in each post object
     posts = posts.map(function (post) {
+      post.isVisitorOwner = post.authorId.equals(visitorId)
+
       post.author = {
         username: post.author.username,
         avatar: new User(post.author, true).avatar
@@ -81,8 +117,10 @@ Post.reusablePostQuery = function (uniqueOperations, visitorId) {
 }
 
 Post.findSingleById = function (id, visitorId) {
+  console.log(id, visitorId)
   return new Promise(async (resolve, reject) => {
     if (typeof id != 'string' || !ObjectID.isValid(id)) {
+      console.log(id, !ObjectID.isValid(id))
       reject()
       return
     }

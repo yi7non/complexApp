@@ -21,6 +21,12 @@ exports.login = async function (req, res) {
     // so the redirect happen only after the user is authenticated in db.
     res.redirect('/')
   } catch (error) {
+    // What the flash() function actually does is
+    // keep the message inside the session obj so that
+    // it is saved even after the redirect,
+    // Therefore we would like to manually save the session
+    // so that the redirect is made only after we have saved
+    // what the flash adds to the session object in DB
     req.flash('errors', error)
     req.session.save(function () {
       res.redirect('/')
@@ -61,7 +67,11 @@ exports.home = function (req, res) {
   if (req.session.user) {
     res.render('home-dashbord')
   } else {
-    res.render('home-guest', { errors: req.flash('errors'), regErrors: req.flash('regErrors') })
+    // Technically to display the error message to the user we could
+    // pull it directly from the req by req.session.flash, but what the
+    // flash function does for us is to delete the flash message
+    // from the DB after we have presented it once to the user
+    res.render('home-guest', { regErrors: req.flash('regErrors') })
   }
 }
 
