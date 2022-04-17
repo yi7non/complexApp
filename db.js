@@ -1,13 +1,14 @@
-const mongodb = require('mongodb')
-const dotenv = require('dotenv').config()
+const dotenv = require('dotenv')
+dotenv.config()
+const {MongoClient} = require('mongodb')
 
-mongodb.connect(
-  process.env.CONNECTIONSTRING,
-  { useNewUrlParser: true, useUnifiedTopology: true },
-  function (err, client) {
-    module.exports = client
-    const app = require('./app')
-    const port = process.env.PORT || 3333
-    app.listen(port, () => console.log('app is runnig on http://localhost:' + port))
-  }
-)
+const client = new MongoClient(process.env.CONNECTIONSTRING)
+
+async function start() {
+  await client.connect()
+  module.exports = client
+  const app = require('./app')
+  app.listen(process.env.PORT)
+}
+
+start()
