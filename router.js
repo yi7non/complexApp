@@ -7,8 +7,8 @@ const followController = require('./controllers/followController')
 // user related routes
 // router.get('/', userController.home)
 // router.post('/register', userController.register)
-router.post('/login', userController.login)
-router.post('/logout', userController.logout)
+// router.post('/login', userController.login)
+// router.post('/logout', userController.logout)
 
 // profile related routes
 router.get('/profile/:username', userController.ifUserExists, userController.sharedProfileData, userController.profilePostsScreen)
